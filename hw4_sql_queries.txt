@@ -1,0 +1,157 @@
+-- p1:
+
+CREATE DATABASE LibraryManagement;
+USE LibraryManagement;
+
+CREATE TABLE authors (
+    author_id INT AUTO_INCREMENT PRIMARY KEY,
+    author_name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE genres (
+    genre_id INT AUTO_INCREMENT PRIMARY KEY,
+    genre_name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE books (
+    book_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    publication_year YEAR,
+    author_id INT,
+    genre_id INT,
+    FOREIGN KEY (author_id) REFERENCES authors(author_id),
+    FOREIGN KEY (genre_id) REFERENCES genres(genre_id)
+);
+
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE
+);
+
+CREATE TABLE borrowed_books (
+    borrow_id INT AUTO_INCREMENT PRIMARY KEY,
+    book_id INT,
+    user_id INT,
+    borrow_date DATE,
+    return_date DATE,
+    FOREIGN KEY (book_id) REFERENCES books(book_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+-- p2:
+
+INSERT INTO authors (author_name) VALUES ('Марк Твен'), ('Дж. К. Ролінг');
+
+INSERT INTO genres (genre_name) VALUES ('Роман'), ('Фентезі');
+
+INSERT INTO books (title, publication_year, author_id, genre_id) VALUES ('Пригоди Тома Сойєра', 1901, 1, 1), ('Гаррі Поттер і філософський камінь', 1997, 2, 2);
+
+INSERT INTO users (username, email) VALUES ('ivan_ivanov', 'ivanov@example.com'), ('anna_petrenko', 'petrenko@example.com');
+
+INSERT INTO borrowed_books (book_id, user_id, borrow_date, return_date) VALUES (1, 1, '2023-01-01', '2023-01-15'), (2, 2, '2023-02-01', '2023-02-15');
+
+-- p3:
+
+USE mydb;
+
+SELECT *
+FROM order_details
+INNER JOIN orders ON order_details.order_id = orders.id
+INNER JOIN customers ON orders.customer_id = customers.id
+INNER JOIN products ON order_details.product_id = products.id
+INNER JOIN categories ON products.category_id = categories.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+INNER JOIN shippers ON orders.shipper_id = shippers.id
+INNER JOIN suppliers ON products.supplier_id = suppliers.id;
+
+-- p4_1:
+
+SELECT COUNT(*) FROM order_details
+INNER JOIN orders ON order_details.order_id = orders.id
+INNER JOIN customers ON orders.customer_id = customers.id
+INNER JOIN products ON order_details.product_id = products.id
+INNER JOIN categories ON products.category_id = categories.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+INNER JOIN shippers ON orders.shipper_id = shippers.id
+INNER JOIN suppliers ON products.supplier_id = suppliers.id;
+
+-- p4_2:
+
+SELECT COUNT(*) FROM order_details
+LEFT JOIN orders ON order_details.order_id = orders.id
+LEFT JOIN customers ON orders.customer_id = customers.id
+INNER JOIN products ON order_details.product_id = products.id
+INNER JOIN categories ON products.category_id = categories.id
+LEFT JOIN employees ON orders.employee_id = employees.employee_id
+LEFT JOIN shippers ON orders.shipper_id = shippers.id
+INNER JOIN suppliers ON products.supplier_id = suppliers.id;
+
+Після зміни у запиті деяких INNER JOIN на LEFT JOIN кількість рядків, що повертаються, залишилась незмінною. Це може бути зумовлено повним перетином даних - для кожного рядка з "лівої" таблиці існує відповідний рядок у "правій" таблиці. У такому випадку, LEFT JOIN веде себе аналогічно до INNER JOIN, оскільки не існує рядків у "лівій" таблиці, що не мають відповідностей у "правій".
+
+-- p4_3:
+
+SELECT *
+FROM order_details
+INNER JOIN orders ON order_details.order_id = orders.id
+INNER JOIN customers ON orders.customer_id = customers.id
+INNER JOIN products ON order_details.product_id = products.id
+INNER JOIN categories ON products.category_id = categories.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+INNER JOIN shippers ON orders.shipper_id = shippers.id
+INNER JOIN suppliers ON products.supplier_id = suppliers.id
+WHERE employees.employee_id > 3 AND employees.employee_id <= 10;
+
+-- p4_4:
+
+SELECT 
+    categories.name AS CategoryName, 
+    COUNT(order_details.id) AS NumberOfOrders, 
+    AVG(order_details.quantity) AS AverageQuantity
+FROM order_details
+INNER JOIN orders ON order_details.order_id = orders.id
+INNER JOIN products ON order_details.product_id = products.id
+INNER JOIN categories ON products.category_id = categories.id
+GROUP BY categories.name;
+
+-- p4_5:
+
+SELECT 
+    categories.name AS CategoryName, 
+    COUNT(order_details.id) AS NumberOfOrders, 
+    AVG(order_details.quantity) AS AverageQuantity
+FROM order_details
+INNER JOIN orders ON order_details.order_id = orders.id
+INNER JOIN products ON order_details.product_id = products.id
+INNER JOIN categories ON products.category_id = categories.id
+GROUP BY categories.name
+HAVING AVG(order_details.quantity) > 21;
+
+-- p4_6:
+
+SELECT 
+    categories.name AS CategoryName, 
+    COUNT(order_details.id) AS NumberOfOrders, 
+    AVG(order_details.quantity) AS AverageQuantity
+FROM order_details
+INNER JOIN orders ON order_details.order_id = orders.id
+INNER JOIN products ON order_details.product_id = products.id
+INNER JOIN categories ON products.category_id = categories.id
+GROUP BY categories.name
+HAVING AVG(order_details.quantity) > 21
+ORDER BY COUNT(order_details.id) DESC;
+
+-- 4_7:
+
+SELECT 
+    categories.name AS CategoryName, 
+    COUNT(order_details.id) AS NumberOfOrders, 
+    AVG(order_details.quantity) AS AverageQuantity
+FROM order_details
+INNER JOIN orders ON order_details.order_id = orders.id
+INNER JOIN products ON order_details.product_id = products.id
+INNER JOIN categories ON products.category_id = categories.id
+GROUP BY categories.name
+HAVING AVG(order_details.quantity) > 21
+ORDER BY COUNT(order_details.id) DESC
+LIMIT 4 OFFSET 1;
